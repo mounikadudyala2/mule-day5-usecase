@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c1867b29-4808-43a4-b7d8-52facf110ce9" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="day5_usecaseFlow" doc:id="b9af6894-1f90-470a-a3bd-355a172db7af" >
+		<http:listener doc:name="Listener" doc:id="070e0932-ec4b-42d0-93c9-3eea591bd3ed" config-ref="HTTP_Listener_config" path="/dataweave"/>
+		<ee:transform doc:name="Transform Message" doc:id="f925e008-9200-4665-be4b-8c1361d7d365" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	employees:((payload.employees.*employee 
+		groupBy $.department.name
+	)orderBy sizeOf($))
+	 pluck $
+	 map(data,index) -> {
+	 	department:data.department.name[0],
+	 	count:sizeOf(data),
+	 	EmployeeInfo:data map{
+	 		"firstname":$.firstname,
+	 		"lastname":$.lastname,
+	 		"designation":$.designation,
+	 		"country":$.country
+	 	}
+	 }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="89e686e8-12f9-4d46-92ca-dad122b196cf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn = "everywhere"
+---
+ (payload.employees.*employee map(d,i) ->
+	{
+		firstname:if(sizeOf(d.firstname) <=6) d.firstname else null,
+		lastname:d.lastname,
+		country:d.country,
+		phone:d.phone,
+		networth:(d.networth replace '\$' with '') as Number
+		as String{format:"#.00"}
+	}
+)
+	]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="day5_usecaseFlow1" doc:id="a8e523cd-af79-4974-928c-a42ec339e33b" >
+		<ee:transform doc:name="Recursion" doc:id="7637aac8-790d-4c29-93e3-141cce5095dc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var range=1 to 10
+fun recSum(arr)=
+ arr reduce(i,total=0) -> total+i
+ fun fact(n)=
+  if(n==1 or n==0) 1
+   else n*fact(n-1)
+---
+{
+	"factorial of 5":fact(5)
+	//"result":recSum(range)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Time Stamp" doc:id="38c231e2-55a4-4ef0-8741-c16efbffb575" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Date Time Stamp":now() as String,
+	"yyyy-MM-dd-hh-mm-ss.SSS":(now() as String{format:'yyyy-MM-dd-hh-mm-ss.SSS'})
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Reg Ex" doc:id="123cc089-70f7-4299-bdbf-963ff887c3a4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	result1:"tcdd1" matches /.c\d+/,
+	result2:"tciiiyh2" matches  /[a-zA-Z].*\d/
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="flatten" doc:id="5dcfffce-9113-4a56-a406-bbba122387d9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+flatten(["firstname","lastname",["adress","locality"],["currentCity"],"district"])
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="day5_usecaseFlow2" doc:id="bc856b9a-5d7d-45bf-babc-483d747b6471" >
+		<ee:transform doc:name="Pluck values from object into Array" doc:id="051b0aa7-6ee9-478d-bc55-95444e5ab9e9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"index1":"value1",
+	"index2":"value2",
+	"index3":"value3"
+} pluck ($$++','++$)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Max" doc:id="d2cb56ab-2bbc-4d6f-a0b2-c6e97c392d7f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	result:max([1,30,22,17])
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="find" doc:id="3da9b962-40cf-4c44-b641-fe830facc686">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+
+	["first","second","third","second","fourth"] find "second"
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="848a0023-423f-4a03-9dbb-2e849b5d9934">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var name="mounika"
+---
+result:typeOf(name)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

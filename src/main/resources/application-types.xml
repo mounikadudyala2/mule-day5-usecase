@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="dataweaveXml" format="xml">
+      <types:example format="xml" element="employees" location="examples/input.xml"/>
+    </types:type>
+    <types:type name="dataweaveXml2" format="xml">
+      <types:example format="xml" element="employees" location="examples/input2-1.xml"/>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#f925e008-9200-4665-be4b-8c1361d7d365">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="dataweaveXml"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#89e686e8-12f9-4d46-92ca-dad122b196cf">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="dataweaveXml2"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>
